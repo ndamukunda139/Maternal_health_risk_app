@@ -1,1 +1,12 @@
 streamlit
+pandas
+numpy
+matplotlib
+seaborn
+scikit-learn
+shap
+xgboost
+plotly
+Pillow
+streamlit-shap
+statsmodels
