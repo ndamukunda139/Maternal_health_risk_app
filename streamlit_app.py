@@ -78,11 +78,11 @@ st.markdown("""
 def load_model():
     """Load the trained model from disk"""
     try:
-        with open('maternal_health_risk_model.pkl', 'rb') as file:
+        with open('maternal_health_risk_model11.pkl', 'rb') as file:
             model = pickle.load(file)
         return model
     except FileNotFoundError:
-        st.error("Model file not found. Please make sure 'maternal_health_risk_model.pkl' is in the current directory.")
+        st.error("Model file not found. Please make sure 'maternal_health_risk_model11.pkl' is in the current directory.")
         return None
 
 @st.cache_data
@@ -102,12 +102,17 @@ def preprocess_input(input_data, model):
     # Convert input data to DataFrame
     input_df = pd.DataFrame([input_data])
 
+    # Add missing columns that the model expects
+    input_df['BS'] = 0 
+    input_df['BodyTemp'] = 0
+    input_df['HeartRate'] = 0 # Default value for prediction target
+
     # Create engineered features similar to training
 
     # Create age groups
     input_df['Age_Group'] = pd.cut(input_df['Age'],
-                                    bins=[0, 20, 30, 40, 50, 60, 70, 100],
-                                    labels=['<20','20-30', '30-40', '40-50', '50-60', '60-70', '70+'])
+        bins=[0, 20, 30, 40, 50, 60, 70, 100],
+        labels=['<20','20-30', '30-40', '40-50', '50-60', '60-70', '70+'])
 
     # Systolic and diastolic combined using np.select for element-wise assignment
     conditions = [
@@ -116,7 +121,7 @@ def preprocess_input(input_data, model):
         ((input_df['SystolicBP'] >= 130) & (input_df['SystolicBP'] < 140)) | ((input_df['DiastolicBP'] < 80) | (input_df['DiastolicBP'] > 90)),
         ((input_df['SystolicBP'] >= 140) & (input_df['SystolicBP'] < 180)) | ((input_df['DiastolicBP'] >= 90) & (input_df['DiastolicBP'] < 120)),
         (input_df['SystolicBP'] > 180) | (input_df['DiastolicBP'] > 120) # Added condition for Hypertensive Crisis
-    ]
+                                        ]
 
     choices = [
         'Normal',
@@ -125,6 +130,8 @@ def preprocess_input(input_data, model):
         'Stage 2 Hypertension',
         'Hypertensive Crisis'
     ]
+    #Create Systolic_diastolic feature in data dataframe
+    input_df['Blood_pressure'] = np.select(conditions, choices, default='Unknown')
 
     return input_df
 
@@ -265,20 +272,28 @@ def main():
                 col1, col2 = st.columns([1, 1])
 
                 with col1:
-                    if result['prediction'] == 'Alive':
+                    if result['prediction'] == 'row risk':
                         st.markdown(f"""
                         <div class='success-box'>
                             <h3>Prediction: {result['prediction']}</h3>
-                            <p>The model predicts that the patient is likely to survive.</p>
-                            <p>Confidence: {result['probability_alive']:.2%}</p>
+                            <p>The model predicts that the patient has low maternal health risk.</p>
+                            <p>Confidence: {result['probability_row_risk']:.2%}</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    if result['prediction'] == 'mid risk':
+                        st.markdown(f"""
+                        <div class='success-box'>
+                            <h3>Prediction: {result['prediction']}</h3>
+                            <p>The model predicts that the patient has mid maternal health risk.</p>
+                            <p>Confidence: {result['probability_mid_risk']:.2%}</p>
                         </div>
                         """, unsafe_allow_html=True)
                     else:
                         st.markdown(f"""
                         <div class='warning-box'>
                             <h3>Prediction: {result['prediction']}</h3>
-                            <p>The model predicts a higher risk of mortality.</p>
-                            <p>Confidence: {result['probability_dead']:.2%}</p>
+                            <p>The model predicts a higher risk of maternal health.</p>
+                            <p>Confidence: {result['probability_high_risk']:.2%}</p>
                         </div>
                         """, unsafe_allow_html=True)
 
@@ -286,7 +301,7 @@ def main():
                     # Create a gauge chart showing probability with improved colors
                     fig = go.Figure(go.Indicator(
                         mode="gauge+number",
-                        value=float(result['probability_dead']),
+                        value=float(result['probability_high_risk']),
                         title={'text': "Mortality Risk", 'font': {'color': '#1d3557'}},
                         gauge={
                             'axis': {'range': [0, 1], 'tickcolor': '#1d3557'},
@@ -299,7 +314,7 @@ def main():
                             'threshold': {
                                 'line': {'color': "#1d3557", 'width': 4},
                                 'thickness': 0.75,
-                                'value': float(result['probability_dead'])
+                                'value': float(result['probability_high_risk'])
                             }
                         }
                     ))
@@ -318,12 +333,12 @@ def main():
 
 
     with tab3:
-        st.markdown("<div class='sub-header'>Breast Cancer Information</div>", unsafe_allow_html=True)
+        st.markdown("<div class='sub-header'>Maternal Health risk Information</div>", unsafe_allow_html=True)
         st.markdown("""
         ### About Breast Cancer
 
-        Breast cancer is one of the most common cancers diagnosed in women. Several factors can influence survival
-        rates, including:
+        Maternal health risk is one of the most common issue diagnosed in women. Several factors can influence the high risk
+        including:
 
         - **Age**: Patient's age at diagnosis
         - **Tumor Size**: The size of the tumor in millimeters
