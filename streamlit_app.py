@@ -78,11 +78,11 @@ st.markdown("""
 def load_model():
     """Load the trained model from disk"""
     try:
-        with open('maternal_health_risk_model11.pkl', 'rb') as file:
+        with open('maternal_health_risk_model.pkl', 'rb') as file:
             model = pickle.load(file)
         return model
     except FileNotFoundError:
-        st.error("Model file not found. Please make sure 'maternal_health_risk_model11.pkl' is in the current directory.")
+        st.error("Model file not found. Please make sure 'maternal_health_risk_model.pkl' is in the current directory.")
         return None
 
 @st.cache_data
@@ -94,7 +94,7 @@ def load_feature_info():
         'DiastolicBP': {'type': 'number', 'min': 40, 'max': 120, 'help': 'Diastolic blood pressure in mm Hg'},
         'BS': {'type': 'number', 'min': 4, 'max': 20, 'help': 'Blood glucose in mmol/L'},
         'BodyTemp': {'type': 'number', 'min': 95, 'max': 105, 'help': 'Body temperature in F'},
-        'HeartRate': {'type': 'number', 'min': 0, 'max': 100, 'help': 'Heart rate in bpm'}
+        'HeartRate': {'type': 'number', 'min': 5, 'max': 100, 'help': 'Heart rate in bpm'}
 }
 
 def preprocess_input(input_data, model):
@@ -113,25 +113,6 @@ def preprocess_input(input_data, model):
     input_df['Age_Group'] = pd.cut(input_df['Age'],
         bins=[0, 20, 30, 40, 50, 60, 70, 100],
         labels=['<20','20-30', '30-40', '40-50', '50-60', '60-70', '70+'])
-
-    # Systolic and diastolic combined using np.select for element-wise assignment
-    conditions = [
-        (input_df['SystolicBP'] < 120) & (input_df['DiastolicBP'] < 80),
-        (input_df['SystolicBP'] >= 120) & (input_df['SystolicBP'] < 130) & (input_df['DiastolicBP'] < 80),
-        ((input_df['SystolicBP'] >= 130) & (input_df['SystolicBP'] < 140)) | ((input_df['DiastolicBP'] < 80) | (input_df['DiastolicBP'] > 90)),
-        ((input_df['SystolicBP'] >= 140) & (input_df['SystolicBP'] < 180)) | ((input_df['DiastolicBP'] >= 90) & (input_df['DiastolicBP'] < 120)),
-        (input_df['SystolicBP'] > 180) | (input_df['DiastolicBP'] > 120) # Added condition for Hypertensive Crisis
-                                        ]
-
-    choices = [
-        'Normal',
-        'Elevated',
-        'Stage 1 Hypertension',
-        'Stage 2 Hypertension',
-        'Hypertensive Crisis'
-    ]
-    #Create Systolic_diastolic feature in data dataframe
-    input_df['Blood_pressure'] = np.select(conditions, choices, default='Unknown')
 
     return input_df
 
@@ -193,7 +174,7 @@ def generate_sample_data():
 
 def main():
     """Main function to run the Streamlit app"""
-    st.markdown("<h1 class='main-header'>Breast Cancer Survival Prediction</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 class='main-header'>Maternal health risk Prediction</h1>", unsafe_allow_html=True)
 
     # Create tabs for different app sections
     tab1, tab2, tab3, tab4 = st.tabs(["Prediction", "EDA", "Information", "About"])
@@ -254,7 +235,7 @@ def main():
                         )
 
             # Submit button
-            submit_button = st.form_submit_button(label="Predict risk")
+            submit_button = st.form_submit_button(label="Predict maternal risk")
 
         # Process the form
         if submit_button:
@@ -335,7 +316,7 @@ def main():
     with tab3:
         st.markdown("<div class='sub-header'>Maternal Health risk Information</div>", unsafe_allow_html=True)
         st.markdown("""
-        ### About Breast Cancer
+        ### About Maternal health
 
         Maternal health risk is one of the most common issue diagnosed in women. Several factors can influence the high risk
         including:
@@ -360,10 +341,10 @@ def main():
 
         The machine learning model was trained on historical patient data with known outcomes. The model achieves:
 
-        - Accuracy: ~85%
-        - Precision: ~75%
-        - Recall: ~70%
-        - ROC-AUC: ~90%
+        - Accuracy: ~88%
+        - Precision: ~89%
+        - Recall: ~88%
+        - ROC-AUC: ~97%
 
         These metrics indicate good but not perfect predictive ability. Always consult healthcare professionals for
         medical decisions.
