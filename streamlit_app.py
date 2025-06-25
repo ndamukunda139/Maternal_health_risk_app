@@ -78,11 +78,11 @@ st.markdown("""
 def load_model():
     """Load the trained model from disk"""
     try:
-        with open('maternal_health_risk_model.pkl', 'rb') as file:
+        with open('maternal_health_risk_model1.pkl', 'rb') as file:
             model = pickle.load(file)
         return model
     except FileNotFoundError:
-        st.error("Model file not found. Please make sure 'maternal_health_risk_model.pkl' is in the current directory.")
+        st.error("Model file not found. Please make sure 'maternal_health_risk_model1.pkl' is in the current directory.")
         return None
 
 @st.cache_data
@@ -103,16 +103,17 @@ def preprocess_input(input_data, model):
     input_df = pd.DataFrame([input_data])
 
     # Add missing columns that the model expects
-    input_df['BS'] = 0 
-    input_df['BodyTemp'] = 0
-    input_df['HeartRate'] = 0 # Default value for prediction target
-
-    # Create engineered features similar to training
-
-    # Create age groups
-    input_df['Age_Group'] = pd.cut(input_df['Age'],
-        bins=[0, 20, 30, 40, 50, 60, 70, 100],
-        labels=['<20','20-30', '30-40', '40-50', '50-60', '60-70', '70+'])
+    expected_columns = model.feature_names_in_
+    for col in expected_columns:
+        if col not in input_df.columns:
+            if col == 'Age_Group':
+                # Create age group based on age
+                input_df[col] = pd.cut(input_df['Age'],
+                    bins=[0, 20, 30, 40, 50, 60, 70, 100],
+                    labels=['<20','20-30', '30-40', '40-50', '50-60', '60-70', '70+'])
+            else:
+                # Fill missing columns with default values
+                input_df[col] = 0
 
     return input_df
 
@@ -123,7 +124,7 @@ def get_prediction_probability(model, input_df):
 
     result = {
         'prediction': 'high risk' if prediction == 0 else 'mid risk' if prediction == 1 else 'low risk',
-        'probability': probability[2] if prediction == 2 else probability[1] if prediction == 1 else probability[0],
+        'probability': probability[0] if prediction == 0 else probability[1] if prediction == 1 else probability[2],
         'probability_high_risk': probability[0],
         'probability_mid_risk': probability[1],
         'probability_row_risk': probability[2]
@@ -174,7 +175,7 @@ def generate_sample_data():
 
 def main():
     """Main function to run the Streamlit app"""
-    st.markdown("<h1 class='main-header'>Maternal health risk Prediction</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 class='main-header'>Maternal health risk Predictions</h1>", unsafe_allow_html=True)
 
     # Create tabs for different app sections
     tab1, tab2, tab3, tab4 = st.tabs(["Prediction", "EDA", "Information", "About"])
@@ -235,7 +236,7 @@ def main():
                         )
 
             # Submit button
-            submit_button = st.form_submit_button(label="Predict maternal risk")
+            submit_button = st.form_submit_button(label="Predict risk")
 
         # Process the form
         if submit_button:
@@ -253,7 +254,7 @@ def main():
                 col1, col2 = st.columns([1, 1])
 
                 with col1:
-                    if result['prediction'] == 'row risk':
+                    if result['prediction'] == 'low risk':
                         st.markdown(f"""
                         <div class='success-box'>
                             <h3>Prediction: {result['prediction']}</h3>
@@ -265,7 +266,7 @@ def main():
                         st.markdown(f"""
                         <div class='success-box'>
                             <h3>Prediction: {result['prediction']}</h3>
-                            <p>The model predicts that the patient has mid maternal health risk.</p>
+                            <p>The model predicts that the mother has mid maternal health risk.</p>
                             <p>Confidence: {result['probability_mid_risk']:.2%}</p>
                         </div>
                         """, unsafe_allow_html=True)
@@ -273,7 +274,7 @@ def main():
                         st.markdown(f"""
                         <div class='warning-box'>
                             <h3>Prediction: {result['prediction']}</h3>
-                            <p>The model predicts a higher risk of maternal health.</p>
+                            <p>The model predicts that the mother has high maternal health risk.</p>
                             <p>Confidence: {result['probability_high_risk']:.2%}</p>
                         </div>
                         """, unsafe_allow_html=True)
@@ -283,7 +284,7 @@ def main():
                     fig = go.Figure(go.Indicator(
                         mode="gauge+number",
                         value=float(result['probability_high_risk']),
-                        title={'text': "Mortality Risk", 'font': {'color': '#1d3557'}},
+                        title={'text': "Maternal health Risk", 'font': {'color': '#1d3557'}},
                         gauge={
                             'axis': {'range': [0, 1], 'tickcolor': '#1d3557'},
                             'bar': {'color': "rgba(0, 0, 0, 0)"},
@@ -341,10 +342,10 @@ def main():
 
         The machine learning model was trained on historical patient data with known outcomes. The model achieves:
 
-        - Accuracy: ~88%
-        - Precision: ~89%
+        - Accuracy: ~89%
+        - Precision: ~88%
         - Recall: ~88%
-        - ROC-AUC: ~97%
+        - ROC-AUC: ~96%
 
         These metrics indicate good but not perfect predictive ability. Always consult healthcare professionals for
         medical decisions.
