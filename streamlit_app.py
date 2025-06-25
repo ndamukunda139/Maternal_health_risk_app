@@ -56,11 +56,11 @@ st.markdown("""
         color: #856404;
     }
     .severe-box {
-        background-color: #ff0000;
+        background-color: #ff2000;
         padding: 1rem;
         border-radius: 0.5rem;
         border: 1px solid #ffc107;
-        color: #856404;
+        color: #000000;
     }
     .stButton>button {
         background-color: #457b9d;
