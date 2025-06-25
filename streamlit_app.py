@@ -55,6 +55,13 @@ st.markdown("""
         border: 1px solid #ffc107;
         color: #856404;
     }
+    .severe-box {
+        background-color: #ff0000;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        border: 1px solid #ffc107;
+        color: #856404;
+    }
     .stButton>button {
         background-color: #457b9d;
         color: white;
@@ -166,6 +173,7 @@ def generate_sample_data():
         'BS': [random.randint(4, 20) for _ in range(sample_size)],
         'BodyTemp': [random.randint(95, 105) for _ in range(sample_size)],
         'HeartRate': [random.randint(0, 100) for _ in range(sample_size)],
+        'Risk': [random.choice(['low risk', 'mid risk', 'high risk']) for _ in range(sample_size)]
     }
 
     # Create DataFrame
@@ -264,7 +272,7 @@ def main():
                         """, unsafe_allow_html=True)
                     if result['prediction'] == 'mid risk':
                         st.markdown(f"""
-                        <div class='success-box'>
+                        <div class='warning-box'>
                             <h3>Prediction: {result['prediction']}</h3>
                             <p>The model predicts that the mother has mid maternal health risk.</p>
                             <p>Confidence: {result['probability_mid_risk']:.2%}</p>
@@ -272,7 +280,7 @@ def main():
                         """, unsafe_allow_html=True)
                     else:
                         st.markdown(f"""
-                        <div class='warning-box'>
+                        <div class='severe-box'>
                             <h3>Prediction: {result['prediction']}</h3>
                             <p>The model predicts that the mother has high maternal health risk.</p>
                             <p>Confidence: {result['probability_high_risk']:.2%}</p>
