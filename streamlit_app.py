@@ -78,11 +78,11 @@ st.markdown("""
 def load_model():
     """Load the trained model from disk"""
     try:
-        with open('maternal_health_risk_model1.pkl', 'rb') as file:
+        with open('maternal_health_risk_model.pkl', 'rb') as file:
             model = pickle.load(file)
         return model
     except FileNotFoundError:
-        st.error("Model file not found. Please make sure 'maternal_health_risk_model1.pkl' is in the current directory.")
+        st.error("Model file not found. Please make sure 'maternal_health_risk_model.pkl' is in the current directory.")
         return None
 
 @st.cache_data
@@ -95,7 +95,7 @@ def load_feature_info():
         'BS': {'type': 'number', 'min': 4, 'max': 20, 'help': 'Blood glucose in mmol/L'},
         'BodyTemp': {'type': 'number', 'min': 95, 'max': 105, 'help': 'Body temperature in F'},
         'HeartRate': {'type': 'number', 'min': 5, 'max': 100, 'help': 'Heart rate in bpm'}
-}
+    }
 
 def preprocess_input(input_data, model):
     """Process input data to match model's expected format"""
