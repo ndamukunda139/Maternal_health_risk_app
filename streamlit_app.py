@@ -78,11 +78,11 @@ st.markdown("""
 def load_model():
     """Load the trained model from disk"""
     try:
-        with open('maternal_health_risk_model.pkl', 'rb') as file:
+        with open('maternal_health_risk_model1.pkl', 'rb') as file:
             model = pickle.load(file)
         return model
     except FileNotFoundError:
-        st.error("Model file not found. Please make sure 'maternal_health_risk_model.pkl' is in the current directory.")
+        st.error("Model file not found. Please make sure 'maternal_health_risk_model1.pkl' is in the current directory.")
         return None
 
 @st.cache_data
