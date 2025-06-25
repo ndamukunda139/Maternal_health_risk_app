@@ -126,16 +126,21 @@ def preprocess_input(input_data, model):
 
 def get_prediction_probability(model, input_df):
     """Get prediction and probability from the model"""
-    prediction = model.predict(input_df)[0]
-    probability = model.predict_proba(input_df)[0]
 
+    # Get prediction
+    prediction = model.predict(input_df)[0]
+    
+    # Get probabilities for each class
+    probabilities = model.predict_proba(input_df)[0]
+
+   # Get prediction and probability from the model
     result = {
-        'prediction': 'low risk' if prediction == 2 else 'mid risk' if prediction == 1 else 'high risk',
-        'probability': probability[0] if prediction == 0 else probability[1] if prediction == 1 else probability[2],
-        'probability_high_risk': probability[0],
-        'probability_mid_risk': probability[1],
-        'probability_row_risk': probability[2]
+        'prediction': prediction,
+        'probability_low_risk': probabilities[2],
+        'probability_mid_risk': probabilities[1],
+        'probability_high_risk': probabilities[0]
     }
+    
 
     return result
 
@@ -264,7 +269,7 @@ def main():
                 with col1:
                     if result['prediction'] == 'high risk':
                         st.markdown(f"""
-                        <div class='warning-box'>
+                        <div class='severe-box'>
                             <h3>Prediction: {result['prediction']}</h3>
                             <p>The model predicts that the mother has high maternal health risk, but with low confidence.</p>
                             <p>Confidence: {result['probability_high_risk']:.2%}</p>
@@ -283,7 +288,7 @@ def main():
                         <div class='success-box'>
                             <h3>Prediction: {result['prediction']}</h3>
                             <p>The model predicts that the patient has low maternal health risk.</p>
-                            <p>Confidence: {result['probability_row_risk']:.2%}</p>
+                            <p>Confidence: {result['probability_low_risk']:.2%}</p>
                         </div>
                         """, unsafe_allow_html=True)
 
