@@ -130,7 +130,7 @@ def get_prediction_probability(model, input_df):
     probability = model.predict_proba(input_df)[0]
 
     result = {
-        'prediction': 'high risk' if prediction == 0 else 'mid risk' if prediction == 1 else 'low risk',
+        'prediction': 'low risk' if prediction == 2 else 'mid risk' if prediction == 1 else 'high risk',
         'probability': probability[0] if prediction == 0 else probability[1] if prediction == 1 else probability[2],
         'probability_high_risk': probability[0],
         'probability_mid_risk': probability[1],
@@ -262,12 +262,12 @@ def main():
                 col1, col2 = st.columns([1, 1])
 
                 with col1:
-                    if result['prediction'] == 'low risk':
+                    if result['prediction'] == 'high risk':
                         st.markdown(f"""
-                        <div class='success-box'>
+                        <div class='warning-box'>
                             <h3>Prediction: {result['prediction']}</h3>
-                            <p>The model predicts that the patient has low maternal health risk.</p>
-                            <p>Confidence: {result['probability_row_risk']:.2%}</p>
+                            <p>The model predicts that the mother has high maternal health risk, but with low confidence.</p>
+                            <p>Confidence: {result['probability_high_risk']:.2%}</p>
                         </div>
                         """, unsafe_allow_html=True)
                     if result['prediction'] == 'mid risk':
@@ -279,11 +279,11 @@ def main():
                         </div>
                         """, unsafe_allow_html=True)
                     else:
-                        st.markdown(f"""
-                        <div class='severe-box'>
+                         st.markdown(f"""
+                        <div class='success-box'>
                             <h3>Prediction: {result['prediction']}</h3>
-                            <p>The model predicts that the mother has high maternal health risk.</p>
-                            <p>Confidence: {result['probability_high_risk']:.2%}</p>
+                            <p>The model predicts that the patient has low maternal health risk.</p>
+                            <p>Confidence: {result['probability_row_risk']:.2%}</p>
                         </div>
                         """, unsafe_allow_html=True)
 
